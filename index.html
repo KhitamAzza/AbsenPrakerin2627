@@ -6,6 +6,8 @@
   <title>Absensi Prakerin</title>
   
 <base target="_blank">
+<base target="_blank">
+<base target="_blank">
 </head>
 <body>
 <link rel="stylesheet" href="style.css">
@@ -34,12 +36,11 @@
         <div class="teacher-name" id="teacherDisplay">-</div>
         <button class="logout-btn" onclick="logout()">Keluar</button>
       </div>
-      <div class="week-nav">
-        <button class="week-arrow" id="prevWeek" onclick="changeWeek(-1)">&#8249;</button>
+      <div class="week-summary" id="weekSummary">
         <div class="week-label" id="weekLabel">-</div>
-        <button class="week-arrow" id="nextWeek" onclick="changeWeek(1)">&#8250;</button>
+        <div class="week-stats" id="weekStats"></div>
       </div>
-      <div class="week-chips" id="weekChips"></div>
+  
     </div>
 
     <div class="card-container" id="cardContainer">
@@ -71,6 +72,7 @@
 
     <div class="save-bar">
       <button class="batch-toggle" id="batchToggle" onclick="toggleBatchMode()">Tanggal Lain</button>
+      <div class="save-spacer"></div>
       <div class="save-btn-wrapper">
         <button class="save-btn" id="saveBtn" onclick="saveAttendance()">Simpan</button>
         <div class="pending-count" id="pendingCount" style="display:none">0</div>
