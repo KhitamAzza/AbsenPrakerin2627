@@ -20,6 +20,7 @@
       --izin: #ca8a04;
       --sakit: #dc2626;
       --libur: #2563eb;
+      --kosong: #6b7280;
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -185,6 +186,30 @@
       font-weight: 600;
       color: var(--gray-700);
     }
+    .week-summary {
+      margin-bottom: 12px;
+    }
+    .week-stats {
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-top: 4px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .week-stat-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .week-stat-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .week-stat-dot.complete { background: var(--success); }
+    .week-stat-dot.partial { background: var(--warning); }
+    .week-stat-dot.empty { background: var(--gray-300); }
     .week-chips {
       display: flex;
       gap: 6px;
@@ -349,6 +374,7 @@
     .status-sakit { color: var(--sakit); font-weight: 600; }
     .status-libur { color: var(--libur); font-weight: 600; }
     .status-alpha { color: var(--alpha); }
+    .status-kosong { color: var(--kosong); font-weight: 400; }
 
     .swipe-hint {
       font-size: 12px;
@@ -410,9 +436,11 @@
       z-index: 20;
       box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
     }
-    .save-btn {
+    .save-spacer {
       flex: 1;
-      padding: 14px;
+    }
+    .save-btn {
+      padding: 14px 24px;
       background: var(--primary);
       color: white;
       border: none;
@@ -421,6 +449,7 @@
       font-weight: 600;
       cursor: pointer;
       transition: background 0.2s;
+      min-width: 100px;
     }
     .save-btn:disabled { background: var(--gray-300); cursor: not-allowed; }
     .save-btn:active:not(:disabled) { background: var(--primary-dark); }
@@ -455,7 +484,7 @@
       align-items: center;
       justify-content: center;
     }
-    .save-btn-wrapper { position: relative; flex: 1; }
+    .save-btn-wrapper { position: relative; flex-shrink: 0; }
 
     /* ===== ADMIN ===== */
     #adminScreen {
