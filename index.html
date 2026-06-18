@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Absensi Prakerin</title>
+  
+<base target="_blank">
+</head>
+<body>
+<link rel="stylesheet" href="style.css">
+  <!-- LOGIN -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <div class="login-title">Absensi Prakerin</div>
+      <div class="login-subtitle">Masukkan password pembimbing</div>
+      <input type="password" class="login-input" id="passwordInput" placeholder="Password" autocomplete="off">
+      <button class="login-btn" onclick="handleLogin()">Masuk</button>
+      <div class="login-error" id="loginError">Password salah</div>
+      <div class="login-hint">Password akan otomatis terdeteksi saat diketik</div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loadingScreen">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loadingText">Memuat data...</div>
+  </div>
+
+  <!-- ATTENDANCE -->
+  <div id="attendanceScreen">
+    <div class="attendance-header">
+      <div class="header-top">
+        <div class="teacher-name" id="teacherDisplay">-</div>
+        <button class="logout-btn" onclick="logout()">Keluar</button>
+      </div>
+      <div class="week-nav">
+        <button class="week-arrow" id="prevWeek" onclick="changeWeek(-1)">&#8249;</button>
+        <div class="week-label" id="weekLabel">-</div>
+        <button class="week-arrow" id="nextWeek" onclick="changeWeek(1)">&#8250;</button>
+      </div>
+      <div class="week-chips" id="weekChips"></div>
+    </div>
+
+    <div class="card-container" id="cardContainer">
+      <div class="student-card" id="studentCard">
+        <div class="student-counter" id="studentCounter">-</div>
+        <div class="photo-wrapper" id="photoWrapper">
+          <div class="photo-placeholder">👤</div>
+        </div>
+        <div class="student-nama" id="studentNama">-</div>
+        <div class="student-kelas" id="studentKelas">-</div>
+        <div class="student-dudi" id="studentDudi">-</div>
+        <div class="student-pembimbing" id="studentPembimbing">-</div>
+        <div class="status-label">Status Absensi</div>
+        <select class="status-select" id="statusSelect" onchange="handleStatusChange(this.value)">
+          <option value="ALPHA">ALPHA</option>
+          <option value="HADIR">HADIR</option>
+          <option value="IZIN">IZIN</option>
+          <option value="SAKIT">SAKIT</option>
+          <option value="LIBUR">LIBUR</option>
+        </select>
+        <div class="swipe-hint">&#8596; Geser kiri/kanan untuk siswa lain</div>
+      </div>
+    </div>
+
+    <div class="batch-panel" id="batchPanel">
+      <div class="batch-title">Isi tanggal terpilih</div>
+      <div id="batchRows"></div>
+    </div>
+
+    <div class="save-bar">
+      <button class="batch-toggle" id="batchToggle" onclick="toggleBatchMode()">Tanggal Lain</button>
+      <div class="save-btn-wrapper">
+        <button class="save-btn" id="saveBtn" onclick="saveAttendance()">Simpan</button>
+        <div class="pending-count" id="pendingCount" style="display:none">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="adminScreen">
+    <div class="admin-header">
+      <button class="admin-back" onclick="logout()">&#8592;</button>
+      <div class="admin-title">Dashboard Admin</div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">&#128100; Status Pembimbing</div>
+      <div id="teacherStatusList"></div>
+    </div>
+    <div class="admin-section">
+      <div class="admin-section-title">&#9888; ALPHA Alert</div>
+      <div id="alphaAlertList"></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast"></div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
