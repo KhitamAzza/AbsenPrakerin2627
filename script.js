@@ -6,7 +6,7 @@ const TEACHERS = {
   "pembiretma": "Retma Fahriza Mahrita, S. Pd., Gr",
   "pembirahmat": "Rahmat Hidayat, S.Kom",
   "pembihurin": "Hurin Vita Kurnia, S.Pd",
-  "pembivisabel": "Visa Bella Valentine, A.Md, Par",
+  "pembivisabel": "Visa Bella Valentine, S. Tr, Par",
   "pembirizky": "Rizky Andriansyah, S.Kom",
   "pembinurkhozi": "Nur Khozinatul Asroriyah, S.Kep",
   "pembianikkris": "Anik Kristyowati, S. Pd., Gr",
