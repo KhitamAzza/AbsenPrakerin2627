@@ -4,8 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Absensi Prakerin</title>
-  
-<base target="_blank">
+
 <base target="_blank">
 <base target="_blank">
 </head>
@@ -40,7 +39,7 @@
         <div class="week-label" id="weekLabel">-</div>
         <div class="week-stats" id="weekStats"></div>
       </div>
-  
+      <div class="week-chips" id="weekChips"></div>
     </div>
 
     <div class="card-container" id="cardContainer">
@@ -55,6 +54,7 @@
         <div class="student-pembimbing" id="studentPembimbing">-</div>
         <div class="status-label">Status Absensi</div>
         <select class="status-select" id="statusSelect" onchange="handleStatusChange(this.value)">
+          <option value="KOSONG">KOSONG</option>
           <option value="ALPHA">ALPHA</option>
           <option value="HADIR">HADIR</option>
           <option value="IZIN">IZIN</option>
@@ -71,7 +71,7 @@
     </div>
 
     <div class="save-bar">
-      <button class="batch-toggle" id="batchToggle" onclick="toggleBatchMode()">Tanggal Lain</button>
+      <button class="batch-toggle" id="batchToggle" onclick="toggleBatchMode()">Isi Minggu Ini</button>
       <div class="save-spacer"></div>
       <div class="save-btn-wrapper">
         <button class="save-btn" id="saveBtn" onclick="saveAttendance()">Simpan</button>
@@ -93,6 +93,50 @@
     <div class="admin-section">
       <div class="admin-section-title">&#9888; ALPHA Alert</div>
       <div id="alphaAlertList"></div>
+          <!-- MONTHLY SUMMARY FAB (LEFT) -->
+    <div class="summary-fab-container" id="summaryFabContainer">
+      <button class="summary-fab-main" onclick="toggleSummaryModal()">
+        <span class="summary-fab-icon">📊</span>
+      </button>
+    </div>
+    </div>
+
+    <!-- ADMIN FAB -->
+    <div class="admin-fab-container" id="adminFabContainer">
+      <div class="admin-fab-menu" id="adminFabMenu">
+        <button class="admin-fab-btn admin-fab-btn-secondary" onclick="sendTeacherReminder()">
+          <span class="admin-fab-icon">👨‍🏫</span>
+          <span class="admin-fab-label">Reminder Guru</span>
+        </button>
+        <button class="admin-fab-btn admin-fab-btn-secondary" onclick="sendAlphaAlert()">
+          <span class="admin-fab-icon">⚠️</span>
+          <span class="admin-fab-label">Alert Alpha</span>
+        </button>
+      </div>
+      <button class="admin-fab-main" id="adminFabMain" onclick="toggleAdminFab()">
+        <span class="admin-fab-main-icon" id="adminFabIcon">+</span>
+      </button>
+    </div>
+  </div>
+  
+  <!-- MONTHLY SUMMARY MODAL -->
+  <div class="modal-overlay" id="summaryModal" onclick="closeSummaryModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title" id="summaryModalTitle">Ringkasan Bulan</div>
+        <button class="modal-close" onclick="closeSummaryModal()">&times;</button>
+      </div>
+      
+      <!-- Month picker -->
+      <div class="month-picker">
+        <button class="month-arrow" onclick="changeSummaryMonth(-1)">&#8249;</button>
+        <div class="month-picker-label" id="summaryMonthLabel">Juni 2026</div>
+        <button class="month-arrow" onclick="changeSummaryMonth(1)">&#8250;</button>
+      </div>
+      
+      <div class="modal-body" id="summaryModalBody">
+        <!-- Filled by JS -->
+      </div>
     </div>
   </div>
 
