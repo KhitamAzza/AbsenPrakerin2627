@@ -147,6 +147,44 @@ function formatDateLabel(start, end) {
   return `${s} – ${e}`;
 }
 
+// ===== PHOTO URL HELPER =====
+function convertDriveUrl(url) {
+  if (!url) return '';
+  url = url.trim();
+
+  // Already a direct URL (lh3.googleusercontent.com)
+  if (url.includes('googleusercontent.com')) {
+    return url;
+  }
+
+  // Google Drive /file/d/FILE_ID format
+  // e.g., https://drive.google.com/file/d/1ABC123/view?usp=sharing
+  const fileMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if (fileMatch) {
+    return `https://lh3.googleusercontent.com/d/${fileMatch[1]}`;
+  }
+
+  // Google Drive open?id=FILE_ID format
+  // e.g., https://drive.google.com/open?id=1ABC123
+  const openMatch = url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (openMatch) {
+    return `https://lh3.googleusercontent.com/d/${openMatch[1]}`;
+  }
+
+  // Google Drive uc?id=FILE_ID format (already direct-ish, but ensure lh3 format)
+  const ucMatch = url.match(/uc\?.*?id=([a-zA-Z0-9_-]+)/);
+  if (ucMatch) {
+    return `https://lh3.googleusercontent.com/d/${ucMatch[1]}`;
+  }
+
+  // If it's already a valid image URL (not drive), return as-is
+  if (url.match(/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i)) {
+    return url;
+  }
+
+  return url;
+}
+
 // ===== LOAD DATA =====
 async function loadAttendanceData() {
   try {
@@ -184,6 +222,7 @@ async function loadAttendanceData() {
 
     renderWeekLabel();
     renderWeekStats();
+    renderWeekChips();
     renderStudentCard();
     showToast(`Selamat datang, ${currentTeacherName}! ${students.length} siswa ditemukan`, 'success');
 
@@ -213,7 +252,7 @@ function renderWeekStats() {
   const today = new Date();
   const weekStart = getSunday(today);
   const dayOfWeek = today.getDay();
-  const daysPassed = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const daysPassed = dayOfWeek;
 
   const counts = { HADIR: 0, IZIN: 0, SAKIT: 0, LIBUR: 0, ALPHA: 0, KOSONG: 0 };
   let filled = 0;
@@ -251,6 +290,66 @@ function renderWeekStats() {
   const totalDays = daysPassed + 1;
   statsEl.innerHTML = `<span style="color:var(--gray-500)">Minggu ini: ${filled}/${totalDays} hari terisi</span> &nbsp;|&nbsp; ${summary}`;
 }
+// ===== WEEK CHIPS (VISUAL ONLY) =====
+function renderWeekChips() {
+  const container = document.getElementById('weekChips');
+  if (!container) return;
+  const today = new Date();
+  const endOfWeek = new Date(currentWeekStart);
+  endOfWeek.setDate(currentWeekStart.getDate() + 6);
+
+  let html = '';
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(currentWeekStart);
+    d.setDate(currentWeekStart.getDate() + i);
+    const dayNum = d.getDate().toString();
+    const isToday = isSameDay(d, today);
+    const isFuture = d > today;
+
+    let dotClass = 'kosong';
+    let dotTitle = 'KOSONG';
+    if (students[currentIndex]) {
+      const nama = students[currentIndex].nama;
+      const pendingKey = `${nama}|${dayNum}`;
+      const pendingStatus = pendingChanges[pendingKey];
+      const savedStatus = monthData[nama] ? monthData[nama][dayNum] : null;
+
+      let effectiveStatus;
+      if (pendingStatus !== undefined) {
+        effectiveStatus = pendingStatus;
+      } else if (savedStatus === undefined || savedStatus === null || savedStatus === "") {
+        effectiveStatus = 'KOSONG';
+      } else {
+        effectiveStatus = savedStatus;
+      }
+
+      dotTitle = effectiveStatus;
+      if (effectiveStatus === 'KOSONG') dotClass = 'kosong';
+      else if (effectiveStatus === 'ALPHA') dotClass = 'alpha';
+      else if (effectiveStatus === 'HADIR') dotClass = 'hadir';
+      else if (effectiveStatus === 'IZIN') dotClass = 'izin';
+      else if (effectiveStatus === 'SAKIT') dotClass = 'sakit';
+      else if (effectiveStatus === 'LIBUR') dotClass = 'libur';
+    }
+
+    const chipClass = [
+      'day-chip',
+      'readonly',
+      isToday ? 'today' : '',
+      isFuture ? 'future' : ''
+    ].filter(Boolean).join(' ');
+
+    html += `
+      <div class="${chipClass}" title="${dotTitle}">
+        <div class="day-name">${DAY_SHORT[i]}</div>
+        <div class="day-num">${d.getDate()}</div>
+        <div class="day-dot ${dotClass}"></div>
+      </div>
+    `;
+  }
+  container.innerHTML = html;
+}
+
 // ===== STUDENT CARD =====
 function renderStudentCard() {
   if (students.length === 0) return;
@@ -258,8 +357,9 @@ function renderStudentCard() {
   const card = document.getElementById('studentCard');
 
   const wrapper = document.getElementById('photoWrapper');
-  if (s.photoUrl) {
-    wrapper.innerHTML = `<img class="student-photo" src="${s.photoUrl}" alt="${s.nama}" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\'photo-placeholder\'>👤</div>'">`;
+  const directUrl = convertDriveUrl(s.photoUrl);
+  if (directUrl) {
+    wrapper.innerHTML = `<img class="student-photo" src="${directUrl}" alt="${s.nama}" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<div class=\'photo-placeholder\'>👤</div>'">`;
   } else {
     wrapper.innerHTML = `<div class="photo-placeholder">👤</div>`;
   }
@@ -321,6 +421,7 @@ function handleStatusChange(value) {
   updateSelectColor(document.getElementById('statusSelect'));
   updatePendingCount();
   renderWeekStats();
+  renderWeekChips();
 }
 
 function updatePendingCount() {
@@ -393,10 +494,10 @@ function goNext() {
   setTimeout(() => {
     currentIndex++;
     card.classList.remove('swipe-left');
-    card.classList.add('slide-in');
+    card.classList.add('slide-in-left');
     renderStudentCard();
     setTimeout(() => {
-      card.classList.remove('slide-in');
+      card.classList.remove('slide-in-left');
       isAnimating = false;
     }, 300);
   }, 300);
@@ -421,10 +522,10 @@ function goPrev() {
   setTimeout(() => {
     currentIndex--;
     card.classList.remove('swipe-right');
-    card.classList.add('slide-in');
+    card.classList.add('slide-in-right');
     renderStudentCard();
     setTimeout(() => {
-      card.classList.remove('slide-in');
+      card.classList.remove('slide-in-right');
       isAnimating = false;
     }, 300);
   }, 300);
@@ -457,7 +558,7 @@ function renderBatchPanel() {
 
   const weekStart = getSunday(today);
   const dayOfWeek = today.getDay();
-  const daysPassed = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const daysPassed = dayOfWeek;
 
   for (let w = 0; w <= daysPassed; w++) {
     const d = new Date(weekStart);
@@ -510,6 +611,7 @@ function updateBatchStatus(day, value) {
 
   updatePendingCount();
   renderWeekStats();
+  renderWeekChips();
 }
 
 // ===== SAVE =====
@@ -552,6 +654,7 @@ async function saveAttendance() {
       pendingChanges = {};
       updatePendingCount();
       renderWeekStats();
+      renderWeekChips();
       updateStatusSelect();
       if (isBatchMode) renderBatchPanel();
     } else {
@@ -590,6 +693,7 @@ async function loadAdminData() {
 }
 
 function renderAdminDashboard(data) {
+  window.lastAdminData = data;
   const teacherList = document.getElementById('teacherStatusList');
   let teacherHtml = '';
   let filledTeachers = 0;
@@ -640,7 +744,7 @@ function renderAdminDashboard(data) {
       const kosongText = alert.kosongCount > 0 ? `<span style="color:var(--gray-400)"> +${alert.kosongCount} kosong</span>` : '';
       alphaHtml += `
         <div class="alpha-row">
-          <img class="alpha-photo" src="${alert.photo || ''}" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          <img class="alpha-photo" src="${convertDriveUrl(alert.photo) || ''}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
           <div class="alpha-info">
             <div class="alpha-name">${alert.nama}</div>
             <div class="alpha-teacher">${alert.teacher}</div>
@@ -656,6 +760,214 @@ function renderAdminDashboard(data) {
     alphaHtml = '<div style="color:var(--gray-400);font-size:13px;text-align:center;">Tidak ada siswa dengan status ALPHA eksplisit</div>';
   }
   alphaList.innerHTML = alphaHtml;
+}
+
+// ===== ADMIN FAB =====
+let isAdminFabOpen = false;
+
+function toggleAdminFab() {
+  isAdminFabOpen = !isAdminFabOpen;
+  const menu = document.getElementById('adminFabMenu');
+  const mainBtn = document.getElementById('adminFabMain');
+  if (isAdminFabOpen) {
+    menu.classList.add('show');
+    mainBtn.classList.add('active');
+  } else {
+    menu.classList.remove('show');
+    mainBtn.classList.remove('active');
+  }
+}
+// ===== MONTHLY SUMMARY MODAL =====
+// ===== MONTHLY SUMMARY MODAL =====
+let summaryCurrentMonth = new Date();
+
+function toggleSummaryModal() {
+  const modal = document.getElementById('summaryModal');
+  if (modal.classList.contains('show')) {
+    closeSummaryModal();
+  } else {
+    summaryCurrentMonth = new Date();
+    renderSummaryModal();
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeSummaryModal(e) {
+  if (e && e.target !== e.currentTarget) return;
+  
+  const modal = document.getElementById('summaryModal');
+  modal.classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+function changeSummaryMonth(delta) {
+  summaryCurrentMonth.setMonth(summaryCurrentMonth.getMonth() + delta);
+  // Re-enable arrows before fetching
+  document.querySelectorAll('.month-arrow').forEach(btn => {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  });
+  renderSummaryModal();
+}
+
+function isMonthSameOrAfter(a, b) {
+  return a.getFullYear() > b.getFullYear() || 
+    (a.getFullYear() === b.getFullYear() && a.getMonth() >= b.getMonth());
+}
+
+async function renderSummaryModal() {
+  const body = document.getElementById('summaryModalBody');
+  const monthLabel = document.getElementById('summaryMonthLabel');
+  const monthName = getMonthSheetName(summaryCurrentMonth);
+  const now = new Date();
+  const isCurrentOrFuture = isMonthSameOrAfter(summaryCurrentMonth, now);
+  
+  monthLabel.textContent = monthName;
+  
+  // Reset arrows
+  const arrows = document.querySelectorAll('.month-arrow');
+  arrows.forEach(btn => {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  });
+
+  body.innerHTML = `
+    <div class="summary-loading">
+      <div class="spinner"></div>
+      <div class="summary-loading-text">Memuat data ${monthName}...</div>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`${API_URL}?action=admin&month=${encodeURIComponent(monthName)}`);
+    const data = await res.json();
+
+    if (data.status !== 'ok') {
+      throw new Error(data.message || 'Gagal memuat data');
+    }
+
+    // No sheet for this month
+    if (data.noSheet) {
+      body.innerHTML = `
+        <div class="summary-empty-state">
+          <div style="font-size:32px;margin-bottom:8px">📭</div>
+          <div>Tidak ada data di bulan ini</div>
+        </div>
+      `;
+      // Block next month arrow if this is current or future month
+      if (isCurrentOrFuture && arrows[1]) {
+        arrows[1].disabled = true;
+        arrows[1].style.opacity = '0.3';
+      }
+      return;
+    }
+
+    const teacherMonthlyStatus = data.teacherMonthlyStatus || {};
+    
+    const teachers = Object.entries(TEACHERS)
+      .filter(([pw]) => pw !== ADMIN_PASSWORD)
+      .map(([pw, name]) => ({ name, status: teacherMonthlyStatus[name] }))
+      .filter(t => t.status);
+
+    const filledCount = teachers.filter(t => t.status.isComplete).length;
+    const totalCount = teachers.length;
+    const pct = totalCount > 0 ? Math.round((filledCount / totalCount) * 100) : 0;
+
+    let listHtml = '';
+    for (const t of teachers) {
+      const isDone = t.status.isComplete;
+      const badgeClass = isDone ? 'summary-status-done' : 'summary-status-pending';
+      const badgeText = isDone ? 'Lengkap' : `${t.status.filledDays} hari terisi`;
+      listHtml += `
+        <div class="summary-teacher-item">
+          <span class="summary-teacher-name">${t.name}</span>
+          <span class="summary-teacher-status ${badgeClass}">${badgeText}</span>
+        </div>
+      `;
+    }
+
+    body.innerHTML = `
+      <div class="summary-month-label">${monthName}</div>
+      <div class="summary-big-number">${filledCount}<span style="font-size:20px;color:var(--gray-400);font-weight:500">/${totalCount}</span></div>
+      <div class="summary-big-label">pembimbing sudah mengisi penuh</div>
+      
+      <div class="summary-progress-wrap">
+        <div class="summary-progress-bar">
+          <div class="summary-progress-fill" style="width:${pct}%"></div>
+        </div>
+        <div class="summary-progress-text">
+          <span>Progress</span>
+          <span style="font-weight:600">${pct}%</span>
+        </div>
+      </div>
+
+      <div class="summary-teacher-list">
+        ${listHtml}
+      </div>
+    `;
+
+  } catch (err) {
+    body.innerHTML = `
+      <div class="summary-empty-state">
+        <div style="font-size:32px;margin-bottom:8px">⚠️</div>
+        <div>Gagal memuat data</div>
+        <div style="font-size:12px;color:var(--gray-400);margin-top:4px">${err.message}</div>
+      </div>
+    `;
+  }
+}
+
+function sendTeacherReminder() {
+  if (!window.lastAdminData || !window.lastAdminData.teacherStatus) {
+    showToast('Data admin belum dimuat', 'error');
+    return;
+  }
+
+  const teacherStatus = window.lastAdminData.teacherStatus;
+  const lines = ['*Guru belum menyelesaikan absensi minggu ini*', ''];
+  let hasIncomplete = false;
+
+  for (const [name, status] of Object.entries(teacherStatus)) {
+    if (status.filledDays < status.totalDays) {
+      const remaining = status.totalDays - status.filledDays;
+      lines.push(`${name} - ${remaining} Hari`);
+      hasIncomplete = true;
+    }
+  }
+
+  if (!hasIncomplete) {
+    showToast('Semua guru sudah mengisi!', 'success');
+    return;
+  }
+
+  const message = lines.join('\n');
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  window.open(waUrl, '_blank');
+  toggleAdminFab();
+}
+
+function sendAlphaAlert() {
+  if (!window.lastAdminData || !window.lastAdminData.alphaAlerts) {
+    showToast('Data admin belum dimuat', 'error');
+    return;
+  }
+
+  const alphaAlerts = window.lastAdminData.alphaAlerts;
+  if (alphaAlerts.length === 0) {
+    showToast('Tidak ada siswa dengan status ALPHA', 'warning');
+    return;
+  }
+
+  const lines = ['*Siswa dengan alpha*', ''];
+  for (const alert of alphaAlerts) {
+    lines.push(`${alert.nama} - ${alert.kelas || '-'} - ${alert.alphaCount} ALPHA`);
+  }
+
+  const message = lines.join('\n');
+  const waUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  window.open(waUrl, '_blank');
+  toggleAdminFab();
 }
 
 // ===== TOAST =====
