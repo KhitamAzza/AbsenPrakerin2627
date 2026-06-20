@@ -372,6 +372,8 @@ function renderStudentCard() {
 
   updateStatusSelect();
   renderWeekStats();
+  renderWeekChips();
+  renderCompactMeta();
 }
 
 function updateStatusSelect() {
@@ -532,20 +534,30 @@ function goPrev() {
 }
 
 // ===== BATCH MODE =====
+function renderCompactMeta() {
+  const meta = document.getElementById('compactMeta');
+  if (!students[currentIndex] || !meta) return;
+  const s = students[currentIndex];
+  meta.textContent = `${s.kelas || '-'} • ${s.dudi || 'DUDI: -'}`;
+}
+
 function toggleBatchMode() {
   isBatchMode = !isBatchMode;
   const btn = document.getElementById('batchToggle');
   const panel = document.getElementById('batchPanel');
+  const card = document.getElementById('studentCard');
 
   if (isBatchMode) {
     btn.classList.add('active');
     btn.textContent = 'Tutup';
     panel.classList.add('show');
+    card.classList.add('compact');
     renderBatchPanel();
   } else {
     btn.classList.remove('active');
     btn.textContent = 'Tanggal Lain';
     panel.classList.remove('show');
+    card.classList.remove('compact');
   }
 }
 
