@@ -44,14 +44,17 @@
 
     <div class="card-container" id="cardContainer">
       <div class="student-card" id="studentCard">
-        <div class="student-counter" id="studentCounter">-</div>
-        <div class="photo-wrapper" id="photoWrapper">
+                <div class="photo-wrapper" id="photoWrapper">
           <div class="photo-placeholder">👤</div>
         </div>
-        <div class="student-nama" id="studentNama">-</div>
-        <div class="student-kelas" id="studentKelas">-</div>
-        <div class="student-dudi" id="studentDudi">-</div>
-        <div class="student-pembimbing" id="studentPembimbing">-</div>
+        <div class="compact-info">
+          <div class="student-counter" id="studentCounter">-</div>
+          <div class="student-nama" id="studentNama">-</div>
+          <div class="student-kelas" id="studentKelas">-</div>
+          <div class="student-dudi" id="studentDudi">-</div>
+          <div class="student-pembimbing" id="studentPembimbing">-</div>
+          <div class="compact-meta" id="compactMeta"></div>
+        </div>
         <div class="status-label">Status Absensi</div>
         <select class="status-select" id="statusSelect" onchange="handleStatusChange(this.value)">
           <option value="KOSONG">KOSONG</option>
