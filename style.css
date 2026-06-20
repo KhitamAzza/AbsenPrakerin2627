@@ -140,7 +140,7 @@
       background: white;
       padding: 16px;
       border-bottom: 1px solid var(--gray-200);
-      position: sticky;
+      /*position: sticky;*/
       top: 0;
       z-index: 10;
     }
@@ -273,6 +273,10 @@
       padding: 16px;
       position: relative;
       overflow: hidden;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: var(--gray-100);
     }
     .student-card {
       background: white;
@@ -396,6 +400,53 @@
       color: var(--gray-400);
       margin-top: 12px;
     }
+    /* ===== COMPACT STUDENT CARD (batch mode) ===== */
+.student-card.compact {
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  border-radius: 16px;
+}
+
+.student-card.compact .photo-wrapper {
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.student-card.compact .student-counter {
+  position: static;
+  font-size: 11px;
+  margin-bottom: 2px;
+  display: inline-block;
+}
+
+.student-card.compact .student-nama {
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.student-card.compact .student-kelas,
+.student-card.compact .student-dudi,
+.student-card.compact .student-pembimbing,
+.student-card.compact .status-label,
+.student-card.compact .status-select,
+.student-card.compact .swipe-hint {
+  display: none;
+}
+
+.student-card.compact .compact-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.student-card.compact .compact-meta {
+  font-size: 12px;
+  color: var(--gray-400);
+}
 
     /* ===== BATCH PANEL ===== */
     .batch-panel {
